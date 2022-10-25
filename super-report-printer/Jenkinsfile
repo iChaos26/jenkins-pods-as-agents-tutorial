@@ -28,10 +28,10 @@ pipeline {
                   resources:
                     requests:
                       cpu: 100m
-                      memory: 256Mi
+                      memory: 515Mi
                     limits:
                       cpu: 2
-                      memory: 256Mi
+                      memory: 1Gi
             '''
         }
     }
@@ -69,19 +69,20 @@ pipeline {
             }
         }
 
-        /*
+
         stage('Build Image') {
-            environment {
-                DOCKER_BUILDKIT = "1"
-            }
             steps {
                 dir(PROJECT_DIR) {
-                    // Some of our agents don't have Docker, what do we do?
-                    // Also, we are always tagging with the same tag! Help!
-                    sh 'docker build -t super-report-printer:v0.1.0 .'
+                    container('kaniko'){
+                        // Kaniko shell
+                        sh '''/kaniko/executor --context=. \\
+                          --dockerfile=./Dockerfile \\
+                          --destination=super-report-printer:v0.1.0 \\
+                          --no-push
+                        '''
+                    }
                 }
             }
         }
-         */
     }
 }
