@@ -4,8 +4,35 @@ import groovy.transform.Field
 @Field String PROJECT_DIR = 'super-report-printer'
 
 pipeline {
-    // We should really use some specific agent, we are getting crashes on some agents without Node or Docker!
-    agent any
+    agent {
+        kubernetes {
+            defaultContainer 'node'
+            yaml '''
+            spec:
+              containers:
+                - name: node
+                  image: node:16.15-alpine3.16
+                  command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 128Mi
+                    limits:
+                      cpu: 1
+                      memory: 128Mi
+                - name: python
+                  image: python:3.10-alpine3.16
+                  command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 10m
+                      memory: 12Mi
+                    limits:
+                      cpu: 1
+                      memory: 12Mi
+            '''
+        }
+    }
 
     options {
         buildDiscarder logRotator(numToKeepStr: '10')
@@ -17,7 +44,9 @@ pipeline {
         stage('Generate Report') {
             steps {
                 dir(PROJECT_DIR) {
-                    sh './report_generator.py'
+                    container('python') {
+                        sh './report_generator.py'
+                    }
                 }
             }
         }
@@ -38,6 +67,7 @@ pipeline {
             }
         }
 
+        /*
         stage('Build Image') {
             environment {
                 DOCKER_BUILDKIT = "1"
@@ -50,5 +80,6 @@ pipeline {
                 }
             }
         }
+         */
     }
 }
