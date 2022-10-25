@@ -18,10 +18,20 @@ pipeline {
                   resources:
                     requests:
                       cpu: 10m
-                      memory: 12Mi
+                      memory: 16Mi
                     limits:
                       cpu: 1
-                      memory: 12Mi
+                      memory: 16Mi
+                - name: kaniko
+                  image: gcr.io/kaniko-project/executor:v1.8.1-debug
+                  command: ["sleep", "infinity"]
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 256Mi
+                    limits:
+                      cpu: 2
+                      memory: 256Mi
             '''
         }
     }
