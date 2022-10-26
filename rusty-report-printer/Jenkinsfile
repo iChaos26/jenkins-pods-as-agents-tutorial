@@ -1,12 +1,14 @@
 import groovy.transform.Field
 
+library 'jenkins-tutorial-shared-lib'
+
 // We need this because of the mono repo :(
 @Field String PROJECT_DIR = 'rusty-report-printer'
 
 pipeline {
     agent {
         kubernetes {
-        inheritFrom 'Node16Alpine'
+        inheritFrom 'Node16Alpine Kaniko'
             defaultContainer 'rust'
             yamlMergeStrategy merge()
             yaml '''
@@ -22,16 +24,6 @@ pipeline {
                         limits:
                             cpu: 2
                             memory: 256Mi
-                    - name: kaniko
-                      image: gcr.io/kaniko-project/executor:v1.8.1-debug
-                      command: ["sleep", "infinity"]
-                      resources:
-                        requests:
-                            cpu: 100m
-                            memory: 515Mi
-                        limits:
-                            cpu: 2
-                            memory: 1Gi
             '''
         }
     }
@@ -75,12 +67,14 @@ pipeline {
         stage('Build Image') {
             steps {
                 dir(PROJECT_DIR) {
-                    container('kaniko') {
-                        sh '''/kaniko/executor --context=. \\
-                          --dockerfile=./Dockerfile \\
-                          --destination=rust-report-printer:v0.1.0 \\
-                          --no-push
-                        '''
+                   scrip{
+                   kaniko.buildNoPush(
+                    imageName: 'rust-report-printer',
+                    imageTag: getImageTags(),
+                    context: '.',
+                    dockerfile: './Dockerfile',
+                    extraArgs: '--user-new-run --snapshotMode=redo'
+                    )
                     }
                 }
             }
@@ -88,3 +82,12 @@ pipeline {
 
     }
 }
+def getImageTags(){
+    def commitTag: = sanitizeImageTag("{env.GIT_BRANCH.replace('/', '-')}-${env.GIT_COMMIT}")
+    def tags:ArrayList = [commitTag]
+
+    if (isMaster(){
+    tags += 'latest'
+    }
+    return tags
+
