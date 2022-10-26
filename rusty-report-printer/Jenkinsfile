@@ -43,10 +43,12 @@ pipeline {
     }
 
     stages {
-        stage('node18') {
+        stage('Generate Report') {
             steps {
                 dir(PROJECT_DIR) {
-                    sh './report_generator.js'
+                    container('node16') {
+                        sh './report_generator.js'
+                    }
                 }
             }
         }
@@ -73,7 +75,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 dir(PROJECT_DIR) {
-                    container('kaniko'){
+                    container('kaniko') {
                         sh '''/kaniko/executor --context=. \\
                           --dockerfile=./Dockerfile \\
                           --destination=rust-report-printer:v0.1.0 \\
