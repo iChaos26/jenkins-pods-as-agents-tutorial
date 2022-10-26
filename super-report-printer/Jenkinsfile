@@ -1,12 +1,12 @@
 import groovy.transform.Field
-
+library 'jenkins-tutorial-shared-lib'
 // We need this because of the mono repo :(
 @Field String PROJECT_DIR = 'super-report-printer'
 
 pipeline {
     agent {
         kubernetes {
-            inheritFrom 'Node16Alpine'
+            inheritFrom 'Node16Alpine Kaniko'
             defaultContainer 'node16'
             yamlMergeStrategy merge()
             yaml '''
@@ -73,16 +73,24 @@ pipeline {
         stage('Build Image') {
             steps {
                 dir(PROJECT_DIR) {
-                    container('kaniko'){
-                        // Kaniko shell
-                        sh '''/kaniko/executor --context=. \\
-                          --dockerfile=./Dockerfile \\
-                          --destination=super-report-printer:v0.1.0 \\
-                          --no-push
-                        '''
-                    }
+                kaniko.buildNoPush(
+                    imageName: 'super-report-printer',
+                    imageTag: getImageTags(),
+                    context: '.',
+                    dockerfile: './Dockerfile',
+                    extraArgs: '--user-new-run --snapshotMode=redo'
+                )
+
                 }
             }
         }
     }
 }
+def getImageTags(){
+    def commitTag: = sanitizeImageTag("{env.GIT_BRANCH.replace('/', '-')}-${env.GIT_COMMIT}")
+    def tags:ArrayList = [commitTag]
+
+    if (isMaster(){
+    tags += 'latest'
+    }
+    return tags
