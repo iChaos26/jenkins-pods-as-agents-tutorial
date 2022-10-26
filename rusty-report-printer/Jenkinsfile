@@ -90,4 +90,4 @@ def getImageTags(){
     tags += 'latest'
     }
     return tags
-
+}
