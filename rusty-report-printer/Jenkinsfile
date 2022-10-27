@@ -67,7 +67,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 dir(PROJECT_DIR) {
-                   scrip{
+                   script{
                        kaniko.buildNoPush imageName: 'rust-report-printer',
                                           imageTag: getImageTags(),
                                           context: PROJECT_DIR,
