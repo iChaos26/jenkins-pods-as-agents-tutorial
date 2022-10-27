@@ -82,10 +82,10 @@ pipeline {
 }
 
 def getImageTags(){
-    def commitTag: ArrayList = [sanitizeImageTag("${env.GIT_BRANCH}-${env.GIT_COMMIT}")]
+    def tags = [sanitizeImageTag("${env.GIT_BRANCH}-${env.GIT_COMMIT}")]
 
     if (isMaster(){
-        commitTag += 'latest'
+        tags += 'latest'
     }
     return tags
 }
