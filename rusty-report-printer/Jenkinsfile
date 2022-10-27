@@ -71,7 +71,7 @@ pipeline {
                        kaniko.buildNoPush imageName: 'rust-report-printer',
                                           imageTag: getImageTags(),
                                           context: PROJECT_DIR,
-                                          dockerfile: "./Dockerfile"
+                                          dockerfile: "${PROJECT_DIR}/Dockerfile"
                    }
                 }
             }
