@@ -12,7 +12,7 @@ pipeline {
             defaultContainer 'rust'
             yamlMergeStrategy merge()
             yaml '''
-              spec:
+            spec:
                 containers:
                     - name: rust
                       image: rustlang/rust:nightly-alpine
@@ -68,26 +68,25 @@ pipeline {
             steps {
                 dir(PROJECT_DIR) {
                    scrip{
-                   kaniko.buildNoPush(
-                    imageName: 'rust-report-printer',
-                    imageTag: getImageTags(),
-                    context: '.',
-                    dockerfile: './Dockerfile',
-                    extraArgs: '--user-new-run --snapshotMode=redo'
-                    )
-                    }
+                       kaniko.buildNoPush imageName: 'rust-report-printer',
+                                          imageTag: getImageTags(),
+                                          context: PROJECT_DIR,
+                                          dockerfile: "${PROJECT_DIR}/Dockerfile",
+                                          extraArgs: '--user-new-run --snapshotMode=redo'
+
+                   }
                 }
             }
         }
-
     }
 }
+
 def getImageTags(){
     def commitTag: = [sanitizeImageTag("${env.GIT_BRANCH}-${env.GIT_COMMIT}")]
     def tags:ArrayList = [commitTag]
 
     if (isMaster(){
-    tags += 'latest'
+        tags += 'latest'
     }
     return tags
 }
